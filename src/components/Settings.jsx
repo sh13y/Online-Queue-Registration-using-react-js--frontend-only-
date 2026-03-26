@@ -1,15 +1,28 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Settings as SettingsIcon, Bell, Lock, Palette, Globe, HelpCircle, LogOut, ToggleRight, Save, Moon, Sun } from 'lucide-react'
 import Sidebar from './Sidebar'
+import { useAuth } from '../context/AuthContext'
 
 export default function Settings({ onNavigateToDashboard, onNavigateToJoinQueue, onNavigateToTrackQueue, onNavigateToCrowdLevel, onNavigateToNotifications, onNavigateToAdminDashboard, onNavigateToPriorityQueue, onNavigateToSettings }) {
+  const { user } = useAuth()
   const [accountSettings, setAccountSettings] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+91 98765 43210',
+    name: '',
+    email: '',
+    phone: '',
     branch: 'Downtown Branch',
     memberSince: 'January 2024',
   })
+
+  useEffect(() => {
+    if (user) {
+      setAccountSettings(prev => ({
+        ...prev,
+        name: user.fullName || user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+      }))
+    }
+  }, [user])
 
   const [notifications, setNotifications] = useState({
     queueUpdates: true,

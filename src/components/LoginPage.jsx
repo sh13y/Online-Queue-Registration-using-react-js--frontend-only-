@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Lock, Mail, ArrowRight, Eye, EyeOff, Zap } from 'lucide-react'
+import { Lock, Mail, ArrowRight, Eye, EyeOff, Zap, AlertCircle } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 export default function LoginPage({ onNavigateSignup, onLoginSuccess }) {
   const [email, setEmail] = useState('')
@@ -7,14 +8,21 @@ export default function LoginPage({ onNavigateSignup, onLoginSuccess }) {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
+  const [error, setError] = useState('')
+  const { login } = useAuth()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
-    setTimeout(() => {
+    setError('')
+    try {
+      await login(email, password)
+      onLoginSuccess({ email })
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.')
+    } finally {
       setIsLoading(false)
-      onLoginSuccess({ email, name: 'John Doe' })
-    }, 1000)
+    }
   }
 
   return (
@@ -88,6 +96,14 @@ export default function LoginPage({ onNavigateSignup, onLoginSuccess }) {
                 </button>
               </div>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="flex items-gap-2 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <AlertCircle size={18} className="text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-red-400 text-sm ml-3">{error}</p>
+              </div>
+            )}
 
             {/* Remember Me */}
             <div className="flex items-center gap-2">

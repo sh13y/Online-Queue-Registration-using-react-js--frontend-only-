@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { User, Mail, Lock, Phone, ArrowLeft, Eye, EyeOff, Zap, CheckCircle } from 'lucide-react'
+import { User, Mail, Lock, Phone, ArrowLeft, Eye, EyeOff, Zap, CheckCircle, AlertCircle } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 export default function SignupPage({ onNavigateLogin, onSignupSuccess }) {
   const [formData, setFormData] = useState({
@@ -13,28 +14,41 @@ export default function SignupPage({ onNavigateLogin, onSignupSuccess }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [agreedTerms, setAgreedTerms] = useState(false)
+  const [error, setError] = useState('')
+  const { signup } = useAuth()
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setError('')
+
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!')
+      setError('Passwords do not match!')
       return
     }
     if (!agreedTerms) {
-      alert('Please agree to terms and conditions')
+      setError('Please agree to terms and conditions')
       return
     }
 
     setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      await signup({
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+      })
       onSignupSuccess({ email: formData.email, name: formData.fullName })
-    }, 1000)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Signup failed. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -191,6 +205,14 @@ export default function SignupPage({ onNavigateLogin, onSignupSuccess }) {
                 </a>
               </label>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="flex items-gap-2 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <AlertCircle size={18} className="text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-red-400 text-sm ml-3">{error}</p>
+              </div>
+            )}
 
             {/* Sign Up Button */}
             <button
